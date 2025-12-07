@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Disk Scheduling Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ------------------------------ ROOT THEME COLORS ------------------------------ */
+:root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-soft: #7f8c8d;
+    --primary: #3498db;
+    --primary-soft: #eaf4fc;
+    --border: #dfe6ed;
+}
+
+/* ------------------------------ DARK MODE THEME ------------------------------ */
+.dark {
+    --bg: #1e272e;
+    --card: #2f3640;
+    --text: #f5f6fa;
+    --text-soft: #ced6e0;
+    --primary: #4aa3ff;
+    --primary-soft: #273c56;
+    --border: #3d3d3d;
+}
+
+/* ------------------------------ BASIC STYLES ------------------------------ */
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 15px;
+    color: var(--text-soft);
+}
+
+/* ------------------------------ DARK MODE BUTTON ------------------------------ */
+.toggle-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* ------------------------------ CARDS ------------------------------ */
+.card {
+    background: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    margin-bottom: 22px;
+}
+
+.card h2 {
+    margin-bottom: 10px;
+}
+
+/* ------------------------------ INPUTS ------------------------------ */
+input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    margin-top: 5px;
+}
+
+/* ------------------------------ BUTTONS ------------------------------ */
+button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--text);
+}
+
+/* ------------------------------ GRID ------------------------------ */
+.grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 800px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ------------------------------ TABLE ------------------------------ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    letter-spacing: 0.7px;
+}
+
+/* ------------------------------ CHART AREA ------------------------------ */
+.chart-area {
+    height: 330px;
+}
+
+/* Algorithm selection chips */
+.algo-chip {
+    background: var(--primary-soft);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 8px;
+    font-size: 13px;
+}
+
+#errorBox {
+    color: red;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<button class="toggle-btn" id="themeToggle">Dark Mode</button>
+
+<div class="container">
+<header>
+    <h1>Advanced Disk Scheduling Simulator</h1>
+    <p class="subtitle">Enter custom disk requests and visualize FCFS, SSTF, SCAN, and C-SCAN performance.</p>
+</header>
+
+<div class="grid">
+
+<!-- =========================== INPUT CARD =========================== -->
+<div class="card">
+    <h2>Input Configuration</h2>
+
+    <label>Disk Requests (comma separated)</label>
+    <input id="reqInput" placeholder="e.g., 98,183,37,122,14,124,65,67">
+
+    <label style="margin-top:10px;">Initial Head Position</label>
+    <input id="headInput" type="number" placeholder="e.g., 53">
+
+    <label style="margin-top:10px;">Max Cylinder</label>
+    <input id="maxInput" type="number" placeholder="e.g., 199">
+
+    <label style="margin-top:10px;">Direction (SCAN / C-SCAN)</label>
+    <select id="dirInput">
+        <option value="right">Right →</option>
+        <option value="left">Left ←</option>
+    </select>
+
+    <h3 style="margin-top:15px;">Algorithms</h3>
+
+    <label class="algo-chip"><input type="checkbox" class="algo" value="FCFS" checked> FCFS</label>
+    <label class="algo-chip"><input type="checkbox" class="algo" value="SSTF" checked> SSTF</label>
+    <label class="algo-chip"><input type="checkbox" class="algo" value="SCAN" checked> SCAN</label>
+    <label class="algo-chip"><input type="checkbox" class="algo" value="CSCAN" checked> C-SCAN</label>
+
+    <div style="margin-top:15px;">
+        <button class="btn-primary" id="runBtn">Run Simulation</button>
+        <button class="btn-outline" id="clearBtn">Clear</button>
+    </div>
+
+    <div id="errorBox"></div>
+</div>
+
+<!-- =========================== CHART CARD =========================== -->
+<div class="card">
+    <h2>Head Movement Visualization</h2>
+    <div class="chart-area">
+        <canvas id="chart"></canvas>
+    </div>
+</div>
+
+</div>
+
+<!-- =========================== METRICS CARD =========================== -->
+<div class="card">
+    <h2>Performance Metrics</h2>
+    <table id="metricsTable">
+        <thead>
+        <tr>
+            <th>Algorithm</th>
+            <th>Total Seek</th>
+            <th>Average Seek</th>
+            <th>Throughput</th>
+            <th>Order</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td colspan="5">Run a simulation to view results.</td></tr>
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+/* ------------------------------ DARK MODE TOGGLE ------------------------------ */
+document.getElementById("themeToggle").onclick = () => {
+    document.body.classList.toggle("dark");
+    document.getElementById("themeToggle").innerText =
+        document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+};
+
+/* ------------------------------ HELPERS ------------------------------ */
+function parseInput(str) {
+    return str.split(",").map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+}
+
+function metricPath(requests, path) {
+    let total = 0;
+    for (let i = 1; i < path.length; i++)
+        total += Math.abs(path[i] - path[i-1]);
+    return total;
+}
+
+/* ------------------------------ ALGORITHMS ------------------------------ */
+function FCFS(req, head) {
+    let path = [head];
+    req.forEach(r => path.push(r));
+    return { name: "FCFS", order: req, path };
+}
+
+function SSTF(req, head) {
+    let r = [...req];
+    let path = [head];
+    let order = [];
+    let current = head;
+
+    while (r.length > 0) {
+        let closest = r.reduce((a,b) => Math.abs(a-current) < Math.abs(b-current) ? a : b);
+        order.push(closest);
+        path.push(closest);
+        r.splice(r.indexOf(closest), 1);
+        current = closest;
+    }
+    return { name: "SSTF", order, path };
+}
+
+function SCAN(req, head, max, dir) {
+    let left = req.filter(r => r < head).sort((a,b)=>a-b);
+    let right = req.filter(r => r >= head).sort((a,b)=>a-b);
+
+    let path = [head], order=[];
+
+    if (dir === "right") {
+        right.forEach(r => { path.push(r); order.push(r); });
+        path.push(max);
+        left.reverse().forEach(r => { path.push(r); order.push(r); });
+    } else {
+        left.reverse().forEach(r => { path.push(r); order.push(r); });
+        path.push(0);
+        right.forEach(r => { path.push(r); order.push(r); });
+    }
+    return { name: "SCAN", order, path };
+}
+
+function CSCAN(req, head, max, dir) {
+    let left = req.filter(r => r < head).sort((a,b)=>a-b);
+    let right = req.filter(r => r >= head).sort((a,b)=>a-b);
+
+    let path = [head], order=[];
+
+    if (dir === "right") {
+        right.forEach(r => { path.push(r); order.push(r); });
+        path.push(max);
+        path.push(0);
+        left.forEach(r => { path.push(r); order.push(r); });
+    } else {
+        left.reverse().forEach(r => { path.push(r); order.push(r); });
+        path.push(0);
+        path.push(max);
+        right.reverse().forEach(r => { path.push(r); order.push(r); });
+    }
+    return { name: "C-SCAN", order, path };
+}
+
+/* ------------------------------ RUN SIMULATION ------------------------------ */
+const chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: [], datasets: [] },
+    options: {
+        responsive: true,
+        scales: {
+            x: { title: { display: true, text: "Step" }},
+            y: { title: { display: true, text: "Cylinder" }}
+        }
+    }
+});
+
+document.getElementById("runBtn").onclick = () => {
+    const req = parseInput(document.getElementById("reqInput").value);
+    const head = parseInt(document.getElementById("headInput").value);
+    const max = parseInt(document.getElementById("maxInput").value);
+    const dir = document.getElementById("dirInput").value;
+
+    const errorBox = document.getElementById("errorBox");
+    errorBox.innerHTML = "";
+
+    if (req.length === 0 || isNaN(head) || isNaN(max)) {
+        errorBox.innerHTML = "Please enter valid inputs.";
+        return;
+    }
+
+    const selected = [...document.querySelectorAll(".algo:checked")].map(a => a.value);
+    if (selected.length === 0) {
+        errorBox.innerHTML = "Select at least one algorithm.";
+        return;
+    }
+
+    let results = [];
+
+    if (selected.includes("FCFS")) results.push(FCFS(req, head));
+    if (selected.includes("SSTF")) results.push(SSTF(req, head));
+    if (selected.includes("SCAN")) results.push(SCAN(req, head, max, dir));
+    if (selected.includes("CSCAN")) results.push(CSCAN(req, head, max, dir));
+
+    /* ------------------------------ UPDATE CHART ------------------------------ */
+    chart.data.labels = [];
+    chart.data.datasets = [];
+
+    results.forEach((res, idx) => {
+        chart.data.datasets.push({
+            label: res.name,
+            data: res.path,
+            borderColor: ["#3498db","#e67e22","#2ecc71","#9b59b6"][idx],
+            fill: false,
+            tension: 0.2
+        });
+        chart.data.labels = [...Array(res.path.length).keys()];
+    });
+
+    chart.update();
+
+    /* ------------------------------ UPDATE TABLE ------------------------------ */
+    let tbody = document.querySelector("#metricsTable tbody");
+    tbody.innerHTML = "";
+
+    results.forEach(res => {
+        let totalSeek = metricPath(req, res.path);
+        let avgSeek = totalSeek / req.length;
+        let throughput = req.length / totalSeek;
+
+        let row = `<tr>
+            <td>${res.name}</td>
+            <td>${totalSeek}</td>
+            <td>${avgSeek.toFixed(2)}</td>
+            <td>${throughput.toFixed(3)}</td>
+            <td>${res.order.join(" → ")}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+};
+
+document.getElementById("clearBtn").onclick = () => {
+    document.getElementById("reqInput").value = "";
+    document.getElementById("headInput").value = "";
+    document.getElementById("maxInput").value = "";
+    document.getElementById("errorBox").innerHTML = "";
+};
+</script>
+
+</body>
+</html>
