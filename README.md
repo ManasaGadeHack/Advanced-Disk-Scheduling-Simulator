@@ -109,7 +109,7 @@ Switch algorithm visualizations across:
 10 requests
 
 Full queue
-
+ 
 Custom window
 
 Charts auto-adjust labels & axes based on the chosen view.
@@ -146,20 +146,4 @@ Direction trace (for SCAN/C-SCAN)
 ✔️ Comparing algorithm efficiencies
 ✔️ Teaching tool for SCAN-based scheduling
 
-⚒️ Tech Stack
 
-Python / C++ / Java (your choice)
-
-Matplotlib / Chart.js for visualization
-
-Tkinter / Web UI (optional)
-
-GitHub for version control
-
-🚧 Future Enhancements
-
-🔹 Add GUI-based dashboard
-🔹 Add real disk I/O log import
-🔹 Add more algorithms (e.g., N-Step-SCAN)
-🔹 Add CSV export of seek logs
-🔹 Add animation mode with speed control
