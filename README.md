@@ -1,149 +1,172 @@
 🚀 Advanced Disk Scheduling Simulator
 
-A powerful and interactive disk scheduling simulator designed to visualize how operating systems handle disk access requests using popular scheduling algorithms.
-This simulator allows users to input custom request queues, observe real-time head movements, and compare algorithm efficiency through detailed performance metrics.
+A modern, interactive, browser-based simulator that visualizes the working of disk scheduling algorithms used in Operating Systems.
+This tool helps users input their own disk access requests, simulate multiple algorithms in real time, and compare performance with detailed charts and metrics.
 
-Understand disk behavior, reduce seek time, and learn OS scheduling concepts — all in one intuitive simulator. 🎯📀
+Understand how head movement works, see seek-time differences, and explore algorithm behavior — all in one elegant dashboard. 🎯📀
 
 🌟 Overview
 
-The Advanced Disk Scheduling Simulator provides a step-by-step, high-visibility view of disk head movements across tracks using algorithms like FCFS, SSTF, SCAN, C-SCAN, LOOK, and C-LOOK.
+The Advanced Disk Scheduling Simulator provides a clean, high-clarity interface to experiment with algorithms like FCFS, SSTF, SCAN, and C-SCAN.
 
-With real-time visualization, seek-time calculation, and track-by-track simulation, this project helps learners instantly understand how different scheduling approaches affect disk performance.
+Users can enter any request queue, set an initial head position, choose a direction (for SCAN/C-SCAN), and watch the algorithm compute head movement dynamically with graphical visualization using Chart.js.
+
+The simulator also calculates and displays important performance metrics, helping learners understand efficiency and tradeoffs.
 
 🔍 Key Features
-✅ Interactive Disk Head Visualization
+✅ Interactive Input Configuration
 
-Track-by-track movement display
+Easily customize disk environment:
 
-Animated seek sequence (optional)
+Enter disk requests (comma-separated)
 
-Shows direction for SCAN/C-SCAN algorithms
+Set initial head position
 
-Auto-updates simulation results
+Define maximum cylinder value
 
-📊 Real-Time Algorithm Comparison
+Choose direction → Left / Right
 
-Visual charts (using Matplotlib / Chart.js):
+Pick algorithms via checkboxes
+✔ FCFS
+✔ SSTF
+✔ SCAN
+✔ C-SCAN
 
-📈 Total Seek Time
-📈 Average Seek Time
-📈 Head Movement Graph (per request)
+Built-in validation ensures safe and clean inputs.
 
-Features:
+📈 Real-Time Head Movement Visualization
 
-Real-time simulation
+Using Chart.js, the simulator generates a live graph showing:
 
-Dynamic chart updates
+Disk head movement step-by-step
 
-Clean visualization of head path
+Color-coded paths for each algorithm
 
-Comparison mode for multiple algorithms
+Real-time chart updates
 
-📋 Dynamic Input Controls
+Smooth line transitions
 
-Users can customize:
+Scalable axes
 
-Disk size
+The graph helps in comparing algorithm behavior visually.
+
+📋 Performance Metrics Dashboard
+
+A dynamic table calculates and displays:
+
+Metric	Description
+Total Seek Time	Total movement of disk head
+Average Seek Time	Efficiency indicator
+Throughput	Requests serviced per movement
+Order of Execution	Request sequence followed
+
+Each algorithm produces its own row with full details.
+
+🎛 Algorithm Engine
+
+The JavaScript backend includes fully implemented algorithms:
+
+🔹 FCFS
+
+Processes requests in the order they arrive.
+
+🔹 SSTF
+
+Always picks the request closest to the head — minimizes movement.
+
+🔹 SCAN
+
+Moves in a direction, servicing requests, hits the end, then reverses.
+
+🔹 C-SCAN
+
+Moves in one direction, jumps to the start, and continues in same direction.
+
+The simulator handles:
+
+Path generation
+
+Order calculation
+
+Seek time math
+
+Direction logic
+
+Left/right track sorting
+
+🌙 Dark Mode Support
+
+A single toggle button switches the entire simulator between Light Mode and Dark Mode, with:
+
+Smooth color transitions
+
+Theme-aware charts and tables
+
+Auto-updating UI elements
+
+The dark theme uses polished, OS-grade styles.
+
+⚙️ Core Technologies Used
+
+HTML5 — Structure
+
+CSS3 — Modern UI, dark mode, responsive layout
+
+JavaScript (ES6) — Algorithm logic + dynamic updates
+
+Chart.js — Disk head movement graph
+
+Flex/Grid Layout — Clean and responsive design
+
+📁 Project Structure
+📦 Advanced Disk Scheduling Simulator
+ ┣ 📄 index.html        → Main UI + JS logic
+ ┣ 📄 styles            → Inline CSS (dark mode + UI)
+ ┣ 📄 chart.js CDN      → Graph library
+ ┗ 📄 README.md         → Documentation
+
+🧪 How the Simulator Works
+1️⃣ User inputs:
+
+Cylinder requests
 
 Initial head position
 
-Sequence of disk access requests
+Max cylinder
 
-Selected scheduling algorithm
+Algorithm(s)
 
-Supported Algorithms
+2️⃣ Simulator processes inputs
 
-🔹 FCFS
-🔹 SSTF
-🔹 SCAN
-🔹 C-SCAN
-🔹 LOOK
-🔹 C-LOOK
+Algorithms compute:
 
-Each algorithm displays:
+Head path
 
-Seek order
+Seek sequence
 
-Seek distance per move
+Total movement
 
-Total + average seek time
+3️⃣ Chart.js renders movement graph
 
-⚙️ Algorithm Engine
+Each algorithm is displayed in a different color.
 
-Includes a robust scheduler with:
+4️⃣ Metrics table updates
 
-Priority-based selection
+Shows:
 
-Head movement optimizer
+Seek time
 
-Built-in validation checks
+Average seek
 
-Track boundary control
+Throughput
 
-🎛️ Actions & Filters
-Simulation Controls
+Request order
 
-▶️ Start Simulation
+🚧 Future Enhancements
 
-🔁 Re-run with new inputs
-
-📦 Compare Algorithms
-
-✏️ Edit Request Queue
-
-Visual Filters
-
-Show / hide movement lines
-
-Highlight nearest request (SSTF)
-
-Reverse head direction (SCAN family)
-
-🕒 Time Window View
-
-Switch algorithm visualizations across:
-
-5 requests
-
-10 requests
-
-Full queue
- 
-Custom window
-
-Charts auto-adjust labels & axes based on the chosen view.
-
-📁 Repository Structure
-📦 Advanced-Disk-Scheduling-Simulator
- ┣ 📂 src
- ┃ ┣ algorithms/
- ┃ ┣ simulator/
- ┃ ┗ ui/
- ┣ 📂 assets
- ┣ 📄 README.md
- ┣ 📄 requirements.txt
- ┗ 📄 main.py / main.cpp
-
-🧪 Performance Metrics
-
-The simulator automatically computes:
-
-Total head movement
-
-Average seek time
-
-Time complexity of each algorithm
-
-Request servicing order
-
-Direction trace (for SCAN/C-SCAN)
-
-🎯 Use Cases
-
-✔️ Operating Systems lab practice
-✔️ Visual learning tool for DSA/OS concepts
-✔️ Comparing algorithm efficiencies
-✔️ Teaching tool for SCAN-based scheduling
-
-
+🔹 Add LOOK & C-LOOK algorithms
+🔹 Add animations for head movement
+🔹 Export graph as PNG
+🔹 Add CSV import/export
+🔹 Add detailed timeline logs
+🔹 Add comparison mode with multiple charts
