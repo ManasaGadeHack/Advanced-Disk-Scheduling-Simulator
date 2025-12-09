@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disk Scheduling Simulator – Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #e8f9f1;
+      --bg-soft: #f4fffb;
+      --card: #ffffff;
+      --text: #1f2d3d;
+      --text-soft: #5f6c7b;
+      --primary: #2ecc71;
+      --primary-alt: #1abc9c;
+      --accent-aqua: #6ddccf;
+      --border: #cde9dd;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+    .dark {
+      --bg: #0f2f2b;
+      --bg-soft: #15423c;
+      --card: #1d554c;
+      --text: #ffffff;
+      --text-soft: #d1f2eb;
+      --primary: #2ecc71;
+      --primary-alt: #1abc9c;
+      --accent-aqua: #4cd2c1;
+      --border: #3a7c72;
+      --shadow: rgba(0, 0, 0, 0.8);
+    }
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+  background: linear-gradient(
+    to bottom,
+    #c6f7e9 0%,
+    #d9faf1 25%,
+    #e8f9f1 50%,
+    #f0fdf9 75%,
+    #ffffff 100%
+  );
+  color: var(--text);
+  padding-bottom: 140px;
+  transition: background .3s, color .3s;
+}
+    .container{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+    /* NAVBAR */
+    .nav{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 20px;
+      background:linear-gradient(135deg,#e8f9f1,#ffffff);
+      box-shadow:0 2px 12px var(--shadow);
+      border-radius:0 0 16px 16px;
+      margin-bottom:20px;
+      border-bottom:1px solid rgba(0,0,0,0.03);
+    }
+    .dark .nav{
+      background:linear-gradient(135deg,#0f2f2b,#15423c);
+    }
+    .logo{
+      font-weight:800;
+      font-size:22px;
+      color:var(--primary-alt);
+      text-decoration:none;
+      letter-spacing:.5px;
+    }
+    body.dark {
+  background: linear-gradient(
+    to bottom,
+    #2c8c81 0%,
+    #2f746a 35%,
+    #44746b 70%,
+    #365f5a 100%
+  );
+}
+    .nav-right{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .nav-links a{
+      margin-left:16px;
+      text-decoration:none;
+      color:var(--text-soft);
+      font-weight:600;
+      font-size:14px;
+      padding:6px 10px;
+      border-radius:999px;
+    }
+    .nav-links a.active{
+      color:#fff;
+      background:linear-gradient(135deg,var(--primary),var(--primary-alt));
+    }
+    .nav-links a:hover:not(.active){
+      background:rgba(255,255,255,0.8);
+    }
+
+    /* DARK MODE SWITCH */
+    .dark-toggle{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      font-size:12px;
+      color:var(--text-soft);
+      margin-left:12px;
+    }
+    .switch{
+      width:40px;
+      height:20px;
+      border-radius:999px;
+      background:#d8f5e7;
+      position:relative;
+      transition:background .25s;
+    }
+    .switch .knob{
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:#ffffff;
+      position:absolute;
+      top:1px;
+      left:1px;
+      transition:transform .25s;
+      box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    }
+    .dark .switch{
+      background:#0b4134;
+    }
+    .dark-toggle.on .switch .knob{
+      transform:translateX(20px);
+    }
+
+    header{text-align:center;margin-top:24px;margin-bottom:26px;}
+    header h1{font-size:34px;margin-bottom:8px;}
+    header p{color:var(--text-soft);font-size:15px;}
+
+    .grid{
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:18px;
+      margin-top:10px;
+    }
+    @media(max-width:800px){
+      .grid{grid-template-columns:1fr;}
+    }
+
+    .card{
+      background:linear-gradient(145deg,#ffffff,#f7fffb);
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 4px 18px var(--shadow);
+      border:1px solid var(--border);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      top:-40px;
+      right:-40px;
+      width:120px;
+      height:120px;
+      background:radial-gradient(circle,rgba(109,220,207,0.28),transparent 60%);
+      pointer-events:none;
+    }
+    .dark .card{
+      background:linear-gradient(145deg,#1a4b42,#103730);
+      border-color:var(--border);
+    }
+
+    h2{margin-bottom:8px;}
+    p{font-size:14px;line-height:1.7;}
+    ul{margin-left:18px;margin-top:8px;}
+    li{margin-bottom:6px;font-size:14px;}
+
+    .btn-primary{
+      display:inline-block;
+      margin-top:14px;
+      padding:10px 18px;
+      border-radius:999px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-alt));
+      color:#fff;
+      text-decoration:none;
+      font-weight:600;
+      font-size:14px;
+      box-shadow:0 4px 12px rgba(46,204,113,0.3);
+    }
+    .btn-primary:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 16px rgba(26,188,156,0.35);
+    }
+
+    .tag-row{margin-top:12px;}
+    .tag{
+      display:inline-block;
+      background:linear-gradient(135deg,#c6f7e9,#e8f9f1);
+      color:var(--text);
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color: black;     
+      margin:2px;
+      border:1px solid rgba(0,0,0,0.03);
+    }
+
+    /* QUICK LINKS STYLE */
+    .quick-links a{
+      color:var(--primary-alt);
+      text-decoration:none;
+      font-weight:600;
+      font-size:14px;
+    }
+    .quick-links a:hover{
+      text-decoration:underline;
+      color:var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <a href="index.html" class="logo">DiskSim</a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="index.html" class="active">Home</a>
+          <a href="simulator.html">Simulator</a>
+          <a href="algorithms.html">Algorithms</a>
+          <a href="about.html">About</a>
+        </div>
+        <button class="dark-toggle" id="themeToggle">
+          <span class="toggle-label">Dark</span>
+          <div class="switch"><div class="knob"></div></div>
+        </button>
+      </div>
+    </nav>
+
+    <header>
+      <h1>Advanced Disk Scheduling Simulator</h1>
+      <p>Explore how FCFS, SSTF, SCAN and C-SCAN handle disk requests, visualize head movement, and compare performance.</p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Project Overview</h2>
+        <p>
+          This simulator provides an interactive way to understand how different disk scheduling algorithms work.
+          You can generate custom or random workloads and see the head movement and metrics in real time.
+        </p>
+        <ul>
+          <li>Visual simulation of disk head movement on a cylinder axis.</li>
+          <li>Supports multiple algorithms: FCFS, SSTF, SCAN, and C-SCAN.</li>
+          <li>Shows total seek time, average seek time, and throughput.</li>
+          <li>Highlights the best-performing algorithm for each workload.</li>
+          <li>Exportable metrics for reports (CSV and PDF support).</li>
+        </ul>
+        <a href="simulator.html" class="btn-primary">Open Simulator</a>
+
+        <div class="tag-row">
+          <span class="tag">Operating Systems</span>
+          <span class="tag">Disk Scheduling</span>
+          <span class="tag">Visualization</span>
+          <span class="tag">Mini Project</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Quick Links</h2>
+        <ul class="quick-links">
+          <li><a href="simulator.html">Run Disk Scheduling Simulator</a></li>
+          <li><a href="algorithms.html">Learn each algorithm step-by-step</a></li>
+          <li><a href="about.html">View features &amp; tech stack</a></li>
+        </ul>
+        <h2 style="margin-top:14px;">Algorithms Included</h2>
+        <ul>
+          <li>FCFS – First-Come First-Served</li>
+          <li>SSTF – Shortest Seek Time First</li>
+          <li>SCAN – Elevator Algorithm</li>
+          <li>C-SCAN – Circular SCAN</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Shared dark mode logic
+    (function(){
+      const body   = document.body;
+      const toggle = document.getElementById('themeToggle');
+
+      function applyTheme(theme){
+        if(theme === 'dark') body.classList.add('dark');
+        else body.classList.remove('dark');
+
+        if(toggle){
+          const isDark = theme === 'dark';
+          toggle.classList.toggle('on', isDark);
+          toggle.querySelector('.toggle-label').textContent = isDark ? 'Light' : 'Dark';
+        }
+      }
+
+      const stored = localStorage.getItem('theme') || 'light';
+      applyTheme(stored);
+
+      if(toggle){
+        toggle.addEventListener('click', () => {
+          const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
+          localStorage.setItem('theme', newTheme);
+          applyTheme(newTheme);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disk Scheduling Algorithms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #e8f9f1;
+      --card: #ffffff;
+      --text: #1f2d3d;
+      --text-soft: #5f6c7b;
+      --primary: #2ecc71;
+      --primary-alt: #1abc9c;
+      --accent: #c6f7e9;
+      --border: #cde9dd;
+      --shadow: rgba(0,0,0,0.08);
+    }
+    .dark {
+      --bg: #0f2f2b;
+      --card: #1d554c;
+      --text: #ffffff;
+      --text-soft: #d1f2eb;
+      --primary: #2ecc71;
+      --primary-alt: #1abc9c;
+      --accent: #4cd2c1;
+      --border: #3a7c72;
+      --shadow: rgba(0,0,0,0.8);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Arial,sans-serif;}
+    body {
+  background: linear-gradient(
+    to bottom,
+    #c6f7e9 0%,
+    #d9faf1 25%,
+    #e8f9f1 50%,
+    #f0fdf9 75%,
+    #ffffff 100%
+  );
+  color: var(--text);
+  padding-bottom: 140px;
+  transition: background .3s, color .3s;
+}
+
+    .container{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+    .nav{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 20px;
+      background:linear-gradient(135deg,#e8f9f1,#ffffff);
+      box-shadow:0 2px 10px var(--shadow);
+      border-radius:0 0 16px 16px;
+      margin-bottom:20px;
+      border-bottom:1px solid rgba(0,0,0,0.03);
+    }
+    .dark .nav{
+      background:linear-gradient(135deg,#0f2f2b,#15423c);
+    }
+    .logo{font-weight:800;font-size:22px;color:var(--primary-alt);text-decoration:none;}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .nav-links a{
+      margin-left:16px;text-decoration:none;color:var(--text-soft);font-weight:600;font-size:14px;
+      padding:6px 10px;border-radius:999px;
+    }
+    .nav-links a.active{
+      color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-alt));
+    }
+    .nav-links a:hover:not(.active){background:rgba(255,255,255,0.9);}
+
+    .dark-toggle{
+      display:flex;align-items:center;gap:6px;
+      border:none;background:transparent;cursor:pointer;
+      font-size:12px;color:var(--text-soft);margin-left:12px;
+    }
+    body.dark {
+  background: linear-gradient(
+    to bottom,
+    #2c8c81 0%,
+    #2f746a 35%,
+    #44746b 70%,
+    #2e3f3d 100%
+  );
+}
+
+
+
+    .switch{
+      width:40px;height:20px;border-radius:999px;background:#d8f5e7;position:relative;transition:background .25s;
+    }
+    .switch .knob{
+      width:18px;height:18px;border-radius:50%;background:#ffffff;
+      position:absolute;top:1px;left:1px;transition:transform .25s;
+      box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    }
+    .dark .switch{background:#0b4134;}
+    .dark-toggle.on .switch .knob{transform:translateX(20px);}
+
+    header{margin-top:20px;margin-bottom:20px;}
+    header h1{font-size:30px;margin-bottom:4px;}
+    header p{color:var(--text-soft);}
+
+    .card{
+      background:linear-gradient(145deg,#ffffff,#f7fffb);
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 3px 15px var(--shadow);
+      border:1px solid var(--border);
+      margin-bottom:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      top:-40px;right:-40px;width:120px;height:120px;
+      background:radial-gradient(circle,rgba(198,247,233,0.4),transparent 60%);
+    }
+    .dark .card{
+      background:linear-gradient(145deg,#1a4b42,#103730);
+      border-color:var(--border);
+    }
+    h2{margin-bottom:6px;}
+    p{font-size:14px;line-height:1.7;margin-top:4px;}
+    pre{
+      background:#f0fff7;
+      padding:10px;border-radius:8px;overflow:auto;font-size:13px;margin-top:8px;
+      border:1px solid rgba(0,0,0,0.03);
+    }
+    .dark pre{
+      background:#103730;
+      border-color:#3a7c72;
+    }
+    ul{margin-left:18px;font-size:14px;margin-top:4px;}
+    li{margin-bottom:4px;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <a href="index.html" class="logo">DiskSim</a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="simulator.html">Simulator</a>
+          <a href="algorithms.html" class="active">Algorithms</a>
+          <a href="about.html">About</a>
+        </div>
+        <button class="dark-toggle" id="themeToggle">
+          <span class="toggle-label">Dark</span>
+          <div class="switch"><div class="knob"></div></div>
+        </button>
+      </div>
+    </nav>
+
+    <header>
+      <h1>Disk Scheduling Algorithms</h1>
+      <p>Conceptual overview of FCFS, SSTF, SCAN and C-SCAN used in the simulator.</p>
+    </header>
+
+    <div class="card">
+      <h2>FCFS – First-Come First-Served</h2>
+      <p>
+        FCFS services disk requests in the exact order they arrive. It is simple and fair, but does not
+        attempt to minimize head movement, which can result in a high average seek time.
+      </p>
+      <ul>
+        <li><b>Pros:</b> Simple, starvation-free, easy to implement.</li>
+        <li><b>Cons:</b> No optimization; can lead to long head movement distances.</li>
+      </ul>
+      <pre>
+// FCFS concept:
+1. Maintain the request queue in arrival order.
+2. Starting from the current head:
+   - Service the first request in the queue.
+   - Move in order to each subsequent request.
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>SSTF – Shortest Seek Time First</h2>
+      <p>
+        SSTF always selects the request that is closest to the current head position. This generally
+        reduces the average seek time compared to FCFS, but can cause starvation for requests that
+        are far from the current head.
+      </p>
+      <ul>
+        <li><b>Pros:</b> Lower average seek time than FCFS.</li>
+        <li><b>Cons:</b> Starvation is possible for distant requests.</li>
+      </ul>
+      <pre>
+// SSTF concept:
+1. From the current head position, compute the distance to each pending request.
+2. Select the request with the minimum distance.
+3. Move head there, mark it serviced.
+4. Repeat until all requests are completed.
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>SCAN – Elevator Algorithm</h2>
+      <p>
+        SCAN moves the head in one direction (towards 0 or towards the maximum cylinder) and services
+        requests along the way. When it reaches the end, it reverses direction and services remaining
+        requests on the way back. The movement resembles an elevator going up and down.
+      </p>
+      <ul>
+        <li><b>Pros:</b> Better throughput and more predictable behavior than FCFS.</li>
+        <li><b>Cons:</b> Requests near the extremes can still see longer waiting times.</li>
+      </ul>
+      <pre>
+// SCAN concept:
+1. Split requests into those below the head and those above.
+2. Sort both groups.
+3. Move in the chosen direction:
+   - Service all requests on the path.
+   - Go to the end (0 or max).
+4. Reverse direction to service remaining requests.
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>C-SCAN – Circular SCAN</h2>
+      <p>
+        C-SCAN is a variant of SCAN where the head moves in only one direction. After reaching the
+        end of the disk, it jumps back to the beginning without servicing requests on the return path.
+        This provides more uniform wait times across cylinders.
+      </p>
+      <ul>
+        <li><b>Pros:</b> More uniform wait time for all cylinders.</li>
+        <li><b>Cons:</b> Extra movement overhead due to the jump from end to start.</li>
+      </ul>
+      <pre>
+// C-SCAN concept:
+1. Move in one direction (e.g., towards max cylinder):
+   - Service all requests on the way.
+2. When the head reaches max, jump back to cylinder 0.
+3. Continue in the same direction servicing remaining requests.
+      </pre>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const body   = document.body;
+      const toggle = document.getElementById('themeToggle');
+      function applyTheme(theme){
+        if(theme === 'dark') body.classList.add('dark');
+        else body.classList.remove('dark');
+        if(toggle){
+          const isDark = theme === 'dark';
+          toggle.classList.toggle('on', isDark);
+          toggle.querySelector('.toggle-label').textContent = isDark ? 'Light' : 'Dark';
+        }
+      }
+      const stored = localStorage.getItem('theme') || 'light';
+      applyTheme(stored);
+      if(toggle){
+        toggle.addEventListener('click', () => {
+          const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
+          localStorage.setItem('theme', newTheme);
+          applyTheme(newTheme);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

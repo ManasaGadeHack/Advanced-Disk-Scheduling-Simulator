@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Disk Scheduling Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+  --bg: #e8f9f1;
+  --bg-soft: #f4fffb;
+  --card: #ffffff;
+  --text: #1f2d3d;
+  --text-soft: #5f6c7b;
+  --primary: #2ecc71;
+  --primary-alt: #1abc9c;
+  --accent-aqua: #6ddccf;
+  --border: #cde9dd;
+  --success: #27ae60;
+  --shadow: rgba(0,0,0,0.12);
+}
+.dark {
+  --bg: #0f2f2b;
+  --bg-soft: #15423c;
+  --card: #1d554c;
+  --text: #ffffff;
+  --text-soft: #d1f2eb;
+  --primary: #2ecc71;
+  --primary-alt: #1abc9c;
+  --accent-aqua: #4cd2c1;
+  --border: #3a7c72;
+  --success: #2ecc71;
+  --shadow: rgba(0,0,0,0.8);
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:system-ui,Arial,sans-serif;
+}
+body {
+  background: linear-gradient(
+    to bottom,
+    #c6f7e9 0%,
+    #d9faf1 25%,
+    #e8f9f1 50%,
+    #f0fdf9 75%,
+    #ffffff 100%
+  );
+  color: var(--text);
+  padding-bottom: 140px;
+  transition: background .3s, color .3s;
+}
+
+.container{max-width:1200px;margin:0 auto;padding:0 20px;}
+
+/* NAVBAR */
+.nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 20px;
+  background:linear-gradient(135deg,#e8f9f1,#ffffff);
+  box-shadow:0 2px 12px var(--shadow);
+  border-radius:0 0 16px 16px;
+  margin-bottom:15px;
+  border-bottom:1px solid rgba(0,0,0,0.03);
+}
+.dark .nav{
+  background:linear-gradient(135deg,#0f2f2b,#15423c);
+}
+.logo{
+  font-weight:800;font-size:22px;color:var(--primary-alt);text-decoration:none;letter-spacing:.5px;
+}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-links a{
+  margin-left:16px;text-decoration:none;color:var(--text-soft);
+  font-weight:600;font-size:14px;padding:6px 10px;border-radius:999px;
+}
+.nav-links a.active{
+  color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--primary-alt));
+}
+.nav-links a:hover:not(.active){
+  background:rgba(255,255,255,0.8);
+}
+
+/* DARK MODE SWITCH */
+.dark-toggle{
+  display:flex;align-items:center;gap:6px;
+  border:none;background:transparent;cursor:pointer;
+  font-size:12px;color:var(--text-soft);margin-left:12px;
+}
+body.dark {
+  background: linear-gradient(
+    to bottom,
+    #2c8c81 0%,
+    #2f746a 35%,
+    #44746b 70%,
+    #2e3f3d 100%
+  );
+}
+
+
+.switch{
+  width:40px;height:20px;border-radius:999px;background:#d8f5e7;position:relative;transition:background .25s;
+}
+.switch .knob{
+  width:18px;height:18px;border-radius:50%;background:#ffffff;
+  position:absolute;top:1px;left:1px;transition:transform .25s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+.dark .switch{background:#0b4134;}
+.dark-toggle.on .switch .knob{transform:translateX(20px);}
+
+/* HEADER */
+header{text-align:center;margin-top:16px;margin-bottom:18px;}
+header h1{font-size:32px;margin-bottom:6px;}
+header p{color:var(--text-soft);font-size:15px;}
+
+/* CARDS */
+.card{
+  background:linear-gradient(145deg,#ffffff,#f7fffb);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 4px 18px var(--shadow);
+  border:1px solid var(--border);
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  top:-40px;right:-40px;width:120px;height:120px;
+  background:radial-gradient(circle,rgba(109,220,207,0.26),transparent 60%);
+  pointer-events:none;
+}
+.dark .card{
+  background:linear-gradient(145deg,#1a4b42,#103730);
+  border-color:var(--border);
+}
+
+/* TEXT / INPUTS */
+ul{margin-left:18px;margin-top:6px;font-size:14px;line-height:1.7;}
+label{font-size:14px;font-weight:600;}
+input,select{
+  width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);margin-top:5px;font-size:14px;
+}
+input:focus,select:focus{
+  outline:none;border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(46,204,113,0.18);
+}
+
+/* GRID */
+.grid{display:grid;gap:20px;grid-template-columns:1fr 1fr;}
+@media(max-width:800px){.grid{grid-template-columns:1fr;}}
+
+/* ALGO CHIPS */
+.algo-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:4px;
+}
+.algo-chip{
+  background:linear-gradient(135deg,#c6f7e9,#e8f9f1);
+  padding:7px 12px;border-radius:20px;display:inline-flex;
+  align-items:center;gap:6px;font-size:13px;cursor:pointer;
+  border:1px solid rgba(0,0,0,0.03);
+  white-space:nowrap;
+  color:black;
+}
+button{
+  padding:9px 14px;border-radius:999px;cursor:pointer;border:none;
+  font-size:14px;font-weight:600;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-alt));
+  color:#fff;box-shadow:0 3px 12px rgba(46,204,113,0.3);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(26,188,156,0.35);}
+.btn-outline{
+  background:rgba(255,255,255,0.7);
+  border:2px solid var(--border);
+  color:var(--text);
+  color:black;
+}
+.btn-outline:hover{background:#f0fff8;}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+
+/* CHART */
+.chart-area{height:330px;}
+
+/* METRICS */
+.metrics-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:16px;
+  margin-top:12px;
+}
+.metric-card{
+  background:linear-gradient(135deg,#f4fffb,#dff5ea);
+  border-radius:14px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+}
+.dark .metric-card{
+  background:linear-gradient(135deg,#15423c,#0f2f2b);
+  border:1px solid #3a7c72;
+  color:#ffffff;
+}
+.metric-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+.metric-name{font-weight:700;font-size:15px;}
+.badge-best{
+  background:var(--success);
+  color:#fff;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:11px;
+}
+.metric-body{font-size:13px;line-height:1.6;}
+.metric-body div{margin-bottom:2px;}
+.metric-steps{
+  margin-top:4px;
+  font-size:12px;
+  max-height:70px;
+  overflow-y:auto;
+}
+
+/* ERROR */
+#errorBox{
+  color:#e74c3c;
+  font-weight:600;
+  margin-top:10px;
+  font-size:13px;
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <a href="index.html" class="logo">DiskSim</a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="simulator.html" class="active">Simulator</a>
+          <a href="algorithms.html">Algorithms</a>
+          <a href="about.html">About</a>
+        </div>
+        <button class="dark-toggle" id="themeToggle">
+          <span class="toggle-label">Dark</span>
+          <div class="switch"><div class="knob"></div></div>
+        </button>
+      </div>
+    </nav>
+
+    <header>
+      <h1>Disk Scheduling Simulator</h1>
+      <p>Experiment with FCFS, SSTF, SCAN and C-SCAN using custom or random workloads.</p>
+    </header>
+
+    <div class="card">
+      <h2>How to Use</h2>
+      <ul>
+        <li>Enter disk requests, head position and max cylinder, or click <b>Random Workload</b>.</li>
+        <li>Select one or more algorithms to compare.</li>
+        <li>Click <b>Run Simulation</b> to update the graph and the metric boxes.</li>
+        <li>The algorithm with the lowest total seek time is marked with a <b>BEST</b> badge.</li>
+        <li>Use <b>Export CSV</b> or <b>Export PDF</b> to generate an analysis report.</li>
+      </ul>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <h2>Input Configuration</h2>
+
+        <label>Disk Requests</label>
+        <input id="reqInput" placeholder="e.g., 98,183,37,122,14,124,65,67">
+
+        <label style="margin-top:15px;">Initial Head Position</label>
+        <input id="headInput" type="number" placeholder="e.g., 53">
+
+        <label style="margin-top:15px;">Maximum Cylinder</label>
+        <input id="maxInput" type="number" placeholder="e.g., 199">
+
+        <label style="margin-top:15px;">Direction (SCAN / C-SCAN)</label>
+        <select id="dirInput">
+          <option value="right">Right →</option>
+          <option value="left">Left ←</option>
+        </select>
+
+        <h3 style="margin-top:18px;">Algorithms</h3>
+        <div class="algo-row">
+          <label class="algo-chip"><input type="checkbox" class="algo" value="FCFS" checked> FCFS</label>
+          <label class="algo-chip"><input type="checkbox" class="algo" value="SSTF" checked> SSTF</label>
+          <label class="algo-chip"><input type="checkbox" class="algo" value="SCAN" checked> SCAN</label>
+          <label class="algo-chip"><input type="checkbox" class="algo" value="CSCAN" checked> C-SCAN</label>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="runBtn">Run Simulation</button>
+          <button class="btn-outline" id="clearBtn">Clear</button>
+          <button class="btn-outline" id="randomBtn">Random Workload</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn-outline" id="exportCsvBtn">Export CSV</button>
+          <button class="btn-outline" id="exportPdfBtn">Export PDF</button>
+        </div>
+
+        <div id="errorBox"></div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <h2>Head Movement Visualization</h2>
+        <div class="chart-area">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="card">
+      <h2>Performance Metrics</h2>
+      <div id="metricsGrid" class="metrics-grid">
+        <div style="font-size:13px;color:var(--text-soft);">
+          Run a simulation to view detailed metrics for each algorithm.
+        </div>
+      </div>
+    </div>
+
+    <!-- LARGE GRAPH BELOW METRICS -->
+    <div class="card">
+      <h2>Detailed Head Movement (Large Graph)</h2>
+      <div class="chart-area" style="height:500px;">
+        <canvas id="chartLarge"></canvas>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+  // Helper: axis / legend color based on theme
+  function getAxisColor() {
+    return document.body.classList.contains("dark") ? "#ffffff" : "#1f2d3d";
+  }
+
+  // Will be defined later
+  function applyChartTheme() {
+    const charts = [window.chart, window.chartLarge];
+    charts.forEach(c => {
+      if (!c) return;
+      if (c.options && c.options.scales) {
+        if (c.options.scales.x) {
+          c.options.scales.x.ticks.color = getAxisColor();
+          if (c.options.scales.x.title) c.options.scales.x.title.color = getAxisColor();
+        }
+        if (c.options.scales.y) {
+          c.options.scales.y.ticks.color = getAxisColor();
+          if (c.options.scales.y.title) c.options.scales.y.title.color = getAxisColor();
+        }
+      }
+      if (c.options.plugins && c.options.plugins.legend && c.options.plugins.legend.labels) {
+        c.options.plugins.legend.labels.color = getAxisColor();
+      }
+      c.update();
+    });
+  }
+
+  // Shared dark mode logic
+  (function(){
+    const body   = document.body;
+    const toggle = document.getElementById('themeToggle');
+
+    function applyTheme(theme){
+      if(theme === 'dark') body.classList.add('dark');
+      else body.classList.remove('dark');
+
+      if(toggle){
+        const isDark = theme === 'dark';
+        toggle.classList.toggle('on', isDark);
+        toggle.querySelector('.toggle-label').textContent = isDark ? 'Light' : 'Dark';
+      }
+    }
+
+    const stored = localStorage.getItem('theme') || 'light';
+    applyTheme(stored);
+
+    if(toggle){
+      toggle.addEventListener('click', () => {
+        const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+        // update chart colors when theme changes
+        applyChartTheme();
+      });
+    }
+  })();
+
+  // Simulator logic
+  function parseInput(str){
+    return str.split(",").map(v=>parseInt(v.trim())).filter(v=>!isNaN(v));
+  }
+  function computeSeek(path){
+    let total=0;
+    for(let i=1;i<path.length;i++) total += Math.abs(path[i]-path[i-1]);
+    return total;
+  }
+
+  function FCFS(req,head){ return {name:"FCFS",order:req,path:[head,...req]}; }
+  function SSTF(req,head){
+    let r=[...req], path=[head], order=[], cur=head;
+    while(r.length){
+      let closest=r.reduce((a,b)=>Math.abs(a-cur)<Math.abs(b-cur)?a:b);
+      order.push(closest); path.push(closest);
+      r.splice(r.indexOf(closest),1); cur=closest;
+    }
+    return {name:"SSTF",order,path};
+  }
+  function SCAN(req,head,max,dir){
+    let left=req.filter(r=>r<head).sort((a,b)=>a-b);
+    let right=req.filter(r=>r>=head).sort((a,b)=>a-b);
+    let path=[head],order=[];
+    if(dir==="right"){
+      right.forEach(r=>{path.push(r);order.push(r);});
+      path.push(max);
+      left.reverse().forEach(r=>{path.push(r);order.push(r);});
+    }else{
+      left.reverse().forEach(r=>{path.push(r);order.push(r);});
+      path.push(0);
+      right.forEach(r=>{path.push(r);order.push(r);});
+    }
+    return {name:"SCAN",order,path};
+  }
+  function CSCAN(req,head,max,dir){
+    let left=req.filter(r=>r<head).sort((a,b)=>a-b);
+    let right=req.filter(r=>r>=head).sort((a,b)=>a-b);
+    let path=[head],order=[];
+    if(dir==="right"){
+      right.forEach(r=>{path.push(r);order.push(r);});
+      path.push(max); path.push(0);
+      left.forEach(r=>{path.push(r);order.push(r);});
+    }else{
+      left.reverse().forEach(r=>{path.push(r);order.push(r);});
+      path.push(0); path.push(max);
+      right.reverse().forEach(r=>{path.push(r);order.push(r);});
+    }
+    return {name:"C-SCAN",order,path};
+  }
+
+  // SMALL CHART
+  const chart = new Chart(document.getElementById("chart"),{
+    type:"line",
+    data:{labels:[],datasets:[]},
+    options:{
+      responsive:true,
+      scales:{
+        x:{
+          title:{display:true,text:"Step",color:getAxisColor()},
+          ticks:{color:getAxisColor()}
+        },
+        y:{
+          title:{display:true,text:"Cylinder",color:getAxisColor()},
+          ticks:{color:getAxisColor()}
+        }
+      },
+      plugins:{
+        legend:{labels:{color:getAxisColor()}}
+      }
+    }
+  });
+
+  // LARGE CHART
+  const chartLarge = new Chart(document.getElementById("chartLarge"),{
+    type:"line",
+    data:{labels:[],datasets:[]},
+    options:{
+      responsive:true,
+      scales:{
+        x:{
+          title:{display:true,text:"Step",color:getAxisColor()},
+          ticks:{color:getAxisColor()}
+        },
+        y:{
+          title:{display:true,text:"Cylinder",color:getAxisColor()},
+          ticks:{color:getAxisColor()}
+        }
+      },
+      plugins:{
+        legend:{labels:{color:getAxisColor()}}
+      }
+    }
+  });
+window.chart = chart;
+window.chartLarge = chartLarge;
+applyChartTheme();
+ 
+
+  let lastReport = null;
+
+  document.getElementById("runBtn").onclick = () => {
+    const req  = parseInput(document.getElementById("reqInput").value);
+    const head = parseInt(document.getElementById("headInput").value);
+    const max  = parseInt(document.getElementById("maxInput").value);
+    const dir  = document.getElementById("dirInput").value;
+    const err  = document.getElementById("errorBox");
+    err.textContent="";
+
+    if(!req.length || isNaN(head) || isNaN(max)){
+      err.textContent="Please enter valid requests, head and max cylinder.";
+      return;
+    }
+    if(req.some(r=>r<0||r>max)||head<0||head>max){
+      err.textContent="All values must be between 0 and max cylinder.";
+      return;
+    }
+
+    const selected=[...document.querySelectorAll(".algo:checked")].map(a=>a.value);
+    if(!selected.length){
+      err.textContent="Select at least one algorithm.";
+      return;
+    }
+
+    let results=[];
+    if(selected.includes("FCFS")) results.push(FCFS(req,head));
+    if(selected.includes("SSTF")) results.push(SSTF(req,head));
+    if(selected.includes("SCAN")) results.push(SCAN(req,head,max,dir));
+    if(selected.includes("CSCAN")) results.push(CSCAN(req,head,max,dir));
+
+    // Chart data
+    chart.data.datasets=[];
+    chartLarge.data.datasets=[];
+    const maxSteps=Math.max(...results.map(r=>r.path.length));
+    chart.data.labels=[...Array(maxSteps).keys()];
+    chartLarge.data.labels=chart.data.labels.slice();
+
+    const colors=["#2ecc71","#1abc9c","#6ddccf","#27ae60"];
+    results.forEach((res,idx)=>{
+      const ds = {
+        label:res.name,
+        data:res.path,
+        borderColor:colors[idx%colors.length],
+        tension:0.2,
+        fill:false
+      };
+      chart.data.datasets.push(ds);
+      chartLarge.data.datasets.push({...ds, tension:0.15});
+    });
+    chart.update();
+    chartLarge.update();
+
+    // Metrics
+    const metricsGrid=document.getElementById("metricsGrid");
+    metricsGrid.innerHTML="";
+    const seeks=results.map(r=>computeSeek(r.path));
+    const bestSeek=Math.min(...seeks);
+
+    const metrics = [];
+    results.forEach((res,i)=>{
+      const total=seeks[i];
+      const avg=total/req.length;
+      const tput=req.length/total;
+      const isBest = total===bestSeek;
+      const pathSteps=res.path.map((v,idx)=> idx===0 ? "Head at "+v : v).join(" → ");
+
+      metrics.push({
+        algo: res.name,
+        totalSeek: total,
+        avgSeek: avg,
+        throughput: tput,
+        order: res.order,
+        path: res.path,
+        isBest
+      });
+
+      const card=document.createElement("div");
+      card.className="metric-card";
+      card.innerHTML=`
+        <div class="metric-header">
+          <div class="metric-name">${res.name}</div>
+          ${isBest ? '<span class="badge-best">BEST</span>' : ""}
+        </div>
+        <div class="metric-body">
+          <div><b>Total Seek:</b> ${total}</div>
+          <div><b>Average Seek:</b> ${avg.toFixed(2)}</div>
+          <div><b>Throughput:</b> ${tput.toFixed(3)}</div>
+          <div><b>Order:</b> ${res.order.join(" → ")}</div>
+          <div class="metric-steps"><b>Head Path:</b> ${pathSteps}</div>
+        </div>
+      `;
+      metricsGrid.appendChild(card);
+    });
+
+    lastReport = {
+      timestamp: new Date(),
+      requests: req,
+      head,
+      max,
+      dir,
+      metrics
+    };
+  };
+
+  document.getElementById("clearBtn").onclick = () => {
+    document.getElementById("reqInput").value="";
+    document.getElementById("headInput").value="";
+    document.getElementById("maxInput").value="";
+    document.getElementById("errorBox").textContent="";
+    document.getElementById("metricsGrid").innerHTML=
+      '<div style="font-size:13px;color:var(--text-soft);">Run a simulation to view detailed metrics for each algorithm.</div>';
+    chart.data.datasets=[];
+    chartLarge.data.datasets=[];
+    chart.update();
+    chartLarge.update();
+    lastReport=null;
+  };
+
+  document.getElementById("randomBtn").onclick = () => {
+    const maxInput=document.getElementById("maxInput");
+    let max=parseInt(maxInput.value);
+    if(isNaN(max)||max<=0) max=199;
+    maxInput.value=max;
+
+    const len=Math.floor(Math.random()*8)+6;
+    const arr=[];
+    for(let i=0;i<len;i++) arr.push(Math.floor(Math.random()*(max+1)));
+    document.getElementById("reqInput").value=arr.join(",");
+    document.getElementById("headInput").value=Math.floor(Math.random()*(max+1));
+    document.getElementById("errorBox").textContent="Random workload generated. Click Run Simulation.";
+  };
+
+  document.getElementById("exportCsvBtn").onclick = () => {
+    if(!lastReport || !lastReport.metrics || !lastReport.metrics.length){
+      alert("No metrics to export. Run a simulation first.");
+      return;
+    }
+    const rows=[];
+    rows.push("Algorithm,Total Seek,Average Seek,Throughput,Order");
+    lastReport.metrics.forEach(m=>{
+      const orderStr=m.order.join("->");
+      rows.push(`${m.algo},${m.totalSeek},${m.avgSeek.toFixed(2)},${m.throughput.toFixed(3)},"${orderStr}"`);
+    });
+    const blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="disk_metrics.csv";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  };
+
+  document.getElementById("exportPdfBtn").onclick = async () => {
+    if(!lastReport || !lastReport.metrics || !lastReport.metrics.length){
+      alert("No metrics to export. Run a simulation first.");
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc=new jsPDF("p","mm","a4");
+    const pageWidth=doc.internal.pageSize.getWidth();
+
+    const now=lastReport.timestamp || new Date();
+    const dateStr=now.toLocaleDateString();
+    const timeStr=now.toLocaleTimeString();
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(18);
+    doc.text("Advanced Disk Scheduling Analysis", pageWidth/2, 20, {align:"center"});
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${dateStr} ${timeStr}`,14,28);
+    doc.setFontSize(11);
+    doc.text("Simulation Details:",14,38);
+    doc.setFontSize(10);
+    doc.text(`Requests: ${lastReport.requests.join(", ")}`,14,44);
+    doc.text(`Initial Head: ${lastReport.head}`,14,50);
+    doc.text(`Max Cylinder: ${lastReport.max}`,14,56);
+    doc.text(`Direction (SCAN/C-SCAN): ${lastReport.dir}`,14,62);
+
+    const imgData=chartLarge.toBase64Image(); // use large graph in PDF
+    const imgWidth=pageWidth-28;
+    const imgHeight=imgWidth*0.5;
+    doc.addImage(imgData,"PNG",14,70,imgWidth,imgHeight);
+
+    let y=70+imgHeight+10;
+    if(y>260){doc.addPage();y=20;}
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    doc.text("Metrics Summary",14,y);y+=6;
+
+    const xAlgo=14,xTotal=50,xAvg=85,xTput=120;
+    doc.setFontSize(9);
+    doc.text("Algorithm",xAlgo,y);
+    doc.text("Total Seek",xTotal,y);
+    doc.text("Avg Seek",xAvg,y);
+    doc.text("Throughput",xTput,y);
+    y+=4;doc.line(14,y,pageWidth-14,y);y+=4;
+    doc.setFont("helvetica","normal");
+
+    lastReport.metrics.forEach(m=>{
+      if(y>280){doc.addPage();y=20;}
+      doc.text(m.algo,xAlgo,y);
+      doc.text(String(m.totalSeek),xTotal,y);
+      doc.text(m.avgSeek.toFixed(2),xAvg,y);
+      doc.text(m.throughput.toFixed(3),xTput,y);
+      y+=5;
+    });
+
+    y+=4;
+    if(y>260){doc.addPage();y=20;}
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    doc.text("Detailed Head Movement (per Algorithm)",14,y);
+    y+=6;
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+
+    lastReport.metrics.forEach(m=>{
+      if(y>270){doc.addPage();y=20;}
+      doc.text(`${m.algo}:`,14,y);y+=4;
+      const orderStr=m.order.join(" -> ");
+      const pathStr=m.path.join(" -> ");
+      const splitOrder=doc.splitTextToSize("Request Order: "+orderStr,pageWidth-28);
+      const splitPath=doc.splitTextToSize("Head Path: "+pathStr,pageWidth-28);
+      doc.text(splitOrder,18,y);
+      y+=splitOrder.length*4+2;
+      doc.text(splitPath,18,y);
+      y+=splitPath.length*4+4;
+    });
+
+    doc.save("disk_scheduling_analysis.pdf");
+  };
+</script>
+</body>
+</html>
